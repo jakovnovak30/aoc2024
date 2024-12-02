@@ -1,8 +1,6 @@
 use common::read_input;
 
 fn main() {
-    println!("Hello, world!");
-
     let input = read_input("src/example.txt");
 
     let mut list1 : Vec<_> = input.clone().into_iter()
