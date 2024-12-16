@@ -6,6 +6,105 @@ from queue import PriorityQueue
 DX = [0,  0, 1, -1]
 DY = [1, -1, 0,  0]
 
+def part1(map, start_x, start_y, end_x, end_y):
+    # dijkstra
+    p = PriorityQueue()
+    # distance, x, y, direction
+    p.put((0, start_x, start_y, 2))
+    visited = set()
+    distances = {}
+
+    while not p.empty():
+        curr_distance, curr_x, curr_y, curr_dir = p.get()
+
+        if (curr_x, curr_y, curr_dir) in visited:
+            continue
+        visited.add((curr_x, curr_y, curr_dir))
+
+        if (curr_x, curr_y) not in map.keys():
+            continue
+
+        for neighbour_x, neighbour_y in map[(curr_x, curr_y)]:
+            delta_x = neighbour_x - curr_x
+            delta_y = neighbour_y - curr_y
+
+            # 4 possible directions
+            '''
+            DX = [0,  0, 1, -1]
+            DY = [1, -1, 0,  0]
+            '''
+            new_dir = -1
+            if delta_x > 0 and delta_y == 0:
+                new_dir = 2
+            elif delta_x < 0 and delta_y == 0:
+                new_dir = 3
+            elif delta_x == 0 and delta_y < 0:
+                new_dir = 1
+            elif delta_x == 0 and delta_y > 0:
+                new_dir = 0
+            else:
+                raise RuntimeError
+
+            new_distance = curr_distance + abs(delta_x) + abs(delta_y)
+            if new_dir != curr_dir:
+                # 180 turn
+                if DX[curr_dir] == DX[new_dir] or DY[curr_dir] == DY[new_dir]:
+                    new_distance += 2000
+                # 90 turn
+                else:
+                    new_distance += 1000
+
+            if (neighbour_x, neighbour_y) not in distances.keys() or distances[(neighbour_x, neighbour_y)] > new_distance:
+                distances[(neighbour_x, neighbour_y)] = new_distance
+
+                p.put((new_distance, neighbour_x, neighbour_y, new_dir))
+
+    return distances[(end_x, end_y)], distances
+
+def part2(map, start_x, start_y, end_x, end_y, optimal_distance, distances):
+    visited_all = set()
+
+    distances2 = [{}, {}, {}, {}]
+    for i in range(4):
+        _, distances2[i] = part1(map, end_x, end_y, start_x, start_y)
+    
+    visited_optimal = set()
+    for key in map.keys():
+        for i in range(4):
+            if key not in distances2[i].keys() or key not in distances.keys():
+                continue
+
+            if distances[key] + distances2[i][key] <= optimal_distance:
+                visited_optimal.add(key)
+
+    visited_optimal.add((start_x, start_y))
+    visited_optimal.add((end_x, end_y))
+
+    for visited_x, visited_y in visited_optimal:
+        for visited_x2, visited_y2 in visited_optimal:
+            if (visited_x, visited_y) not in map.keys():
+                continue
+            elif (visited_x2, visited_y2) not in map[(visited_x, visited_y)]:
+                continue
+
+            if visited_x == visited_x2:
+                min_y = min(visited_y, visited_y2)
+                max_y = max(visited_y, visited_y2)
+
+                for curr_y in range(min_y, max_y+1):
+                    visited_all.add((visited_x, curr_y))
+            elif visited_y == visited_y2:
+                min_x = min(visited_x, visited_x2)
+                max_x = max(visited_x, visited_x2)
+
+                for curr_x in range(min_x, max_x+1):
+                    visited_all.add((curr_x, visited_y))
+            else:
+                raise RuntimeError
+
+
+    return len(visited_all)
+
 if __name__ == '__main__':
     sys.setrecursionlimit(100000)
     input = []
@@ -79,56 +178,6 @@ if __name__ == '__main__':
     for dir in range(4):
         recursion(start_x, start_y, start_x, start_y, dir)
 
-    # dijkstra
-    p = PriorityQueue()
-    # distance, x, y, direction
-    p.put((0, start_x, start_y, 2))
-    visited = set()
-    distances = {}
-
-    while not p.empty():
-        curr_distance, curr_x, curr_y, curr_dir = p.get()
-
-        if (curr_x, curr_y, curr_dir) in visited:
-            continue
-        visited.add((curr_x, curr_y, curr_dir))
-
-        if (curr_x, curr_y) not in new_map.keys():
-            continue
-
-        for neighbour_x, neighbour_y in new_map[(curr_x, curr_y)]:
-            delta_x = neighbour_x - curr_x
-            delta_y = neighbour_y - curr_y
-
-            # 4 possible directions
-            '''
-            DX = [0,  0, 1, -1]
-            DY = [1, -1, 0,  0]
-            '''
-            new_dir = -1
-            if delta_x > 0 and delta_y == 0:
-                new_dir = 2
-            elif delta_x < 0 and delta_y == 0:
-                new_dir = 3
-            elif delta_x == 0 and delta_y < 0:
-                new_dir = 1
-            elif delta_x == 0 and delta_y > 0:
-                new_dir = 0
-            else:
-                raise RuntimeError
-
-            new_distance = curr_distance + abs(delta_x) + abs(delta_y)
-            if new_dir != curr_dir:
-                # 180 turn
-                if DX[curr_dir] == DX[new_dir] or DY[curr_dir] == DY[new_dir]:
-                    new_distance += 2000
-                # 90 turn
-                else:
-                    new_distance += 1000
-
-            if (neighbour_x, neighbour_y) not in distances.keys() or distances[(neighbour_x, neighbour_y)] > new_distance:
-                distances[(neighbour_x, neighbour_y)] = new_distance
-
-                p.put((new_distance, neighbour_x, neighbour_y, new_dir))
-
-    print(f"Solution 1: {distances[(end_x, end_y)]}")
+    optimal_distance, distances = part1(new_map, start_x, start_y, end_x, end_y)
+    print(f"Solution 1: {optimal_distance}")
+    print(f"Solution 2: {part2(new_map, start_x, start_y, end_x, end_y, optimal_distance, distances)}")
