@@ -136,7 +136,7 @@ if __name__ == '__main__':
             return
         visited.add((start_x, start_y, x, y, direction))
 
-        # check if you're at an intersection'
+        # check if you're at an intersection
         if DX[direction] == 0 and input[next_y][next_x] != '#' and (input[next_y][next_x + 1] != '#' or input[next_y][next_x - 1] != '#'):
             if (start_x, start_y) not in new_map.keys():
                 new_map[(start_x, start_y)] = set()
