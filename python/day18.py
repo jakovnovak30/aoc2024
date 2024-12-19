@@ -1,10 +1,8 @@
 #!/bin/python3
 
-import sys
 from queue import Queue
 
 def part1(input : list[tuple[int, int]]) -> int | None:
-    sys.setrecursionlimit(10000)
     visited = set()
     finish_time = None
     MAX_X = 70
