@@ -1,17 +1,9 @@
 #!/bin/python3
 
-if __name__ == '__main__':
-    input_wires = {}
-    rules = []
-    with open('input.txt') as file:
-        inputs, rules = file.read().split('\n\n')
+from copy import copy
+from graphviz import Digraph
 
-        for wire in inputs.split('\n'):
-            wire, value = wire.split(':')
-            input_wires[wire] = int(value)
-
-        rules = list(map(lambda x: x.split(' -> '), rules.strip().split('\n')))
-    
+def part1(input_wires, rules) -> int:
     unprocessed_wires = set(list(map(lambda x: x[1], rules)))
     while unprocessed_wires != set():
         for rule in rules:
@@ -40,4 +32,29 @@ if __name__ == '__main__':
     for wire in sorted(filter(lambda x: x[0] == 'z', map(lambda x: x[1], rules[::-1]))):
         result += input_wires[wire] * 2**ctr
         ctr += 1
-    print(result)
+    return result
+
+def part2(rules):
+    g = Digraph('g')
+    for rule in rules:
+        operand1, operator, operand2 = rule[0].split(' ')
+        g.edge(operand1, f'{operand1}-{operator}-{operand2}')
+        g.edge(operand2, f'{operand1}-{operator}-{operand2}')
+        g.edge(f'{operand1}-{operator}-{operand2}', rule[1])
+    g.view()
+
+if __name__ == '__main__':
+    input_wires = {}
+    rules = []
+    with open('input.txt') as file:
+        inputs, rules = file.read().split('\n\n')
+
+        for wire in inputs.split('\n'):
+            wire, value = wire.split(':')
+            input_wires[wire] = int(value)
+
+        rules = list(map(lambda x: x.split(' -> '), rules.strip().split('\n')))
+    
+    print(f"Solution 1: {part1(copy(input_wires), rules)}")
+    part2(rules)
+    print("Solution 2: analyze the provided graph")
